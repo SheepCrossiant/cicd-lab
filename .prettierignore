@@ -1,2 +1,6 @@
 dist/
 node_modules/
+coverage
+.github/workflows_backup/
+snippets/
+docker-compose.yml

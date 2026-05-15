@@ -22,13 +22,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # 1. Prettier 格式檢查
+      # 1. Prettier check
       - name: Run Prettier check
-        # 如果你希望即使 Prettier 沒過也繼續跑測試，可以加上下一行
-        # continue-on-error: true
         run: npx prettier --check .
 
-      # 2. TypeScript 型別檢查
+      # 2. TypeScript check
       - name: Run TypeScript typecheck
         run: npx tsc --noEmit
 
@@ -37,7 +35,7 @@ jobs:
         if: always()
         run: |
           echo "測試執行結果" >> $GITHUB_STEP_SUMMARY
-          echo "<details><summary>▶ Click here Log</summary>" >> $GITHUB_STEP_SUMMARY
+          echo "<details><summary>Click here Log</summary>" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`text" >> $GITHUB_STEP_SUMMARY
           
@@ -48,11 +46,7 @@ jobs:
           cat test-output.log >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
           echo "</details>" >> $GITHUB_STEP_SUMMARY
-          
-          # 判斷測試結果
-          if [ "$TEST_FAILED" == "true" ]; then 
-            echo "測試失敗" >> $GITHUB_STEP_SUMMARY
-            exit 1
-          else
-            echo "測試通過 (若上方整體亮紅燈，點擊左側選單檢查是否為 Prettier 或 TS 檢查失敗)" >> $GITHUB_STEP_SUMMARY
-          fi
+            if [ "$TEST_FAILED" = "true" ]; then
+                echo "Tests failed. See summary for details."
+                exit 1
+            fi
