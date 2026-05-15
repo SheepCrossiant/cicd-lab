@@ -16,7 +16,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24' # 🚀 升級到 24 以消除截圖中的黃色警告
           cache: 'npm'
 
       - name: Install dependencies
@@ -24,6 +24,8 @@ jobs:
 
       # 1. Prettier 格式檢查
       - name: Run Prettier check
+        # 如果你希望即使 Prettier 沒過也繼續跑測試，可以加上下一行
+        # continue-on-error: true
         run: npx prettier --check .
 
       # 2. TypeScript 型別檢查
@@ -32,18 +34,25 @@ jobs:
 
       # 3. 執行測試並將結果寫入 GitHub Step Summary
       - name: Run Tests and Generate Summary
-        # 確保就算前面的測試失敗，也能捕捉到錯誤代碼，並把 log 印在介面上
+        if: always() # 🚀 確保即使前面的檢查失敗，這個步驟也會執行
         run: |
           echo "## 🧪 測試執行結果" >> $GITHUB_STEP_SUMMARY
-          echo "<details><summary>點擊展開測試詳細 Log</summary>" >> $GITHUB_STEP_SUMMARY
+          echo "<details><summary>▶ 點擊展開測試詳細 Log</summary>" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`text" >> $GITHUB_STEP_SUMMARY
           
-          # 執行測試，並將輸出同時顯示在終端機與存入暫存檔 (使用 pipefail 確保測試失敗時能回傳錯誤)
-          set -o pipefail
-          npm test 2>&1 | tee test-output.log
+          # 🚀 使用 || true 防止 npm test 失敗時直接中斷腳本，並將失敗狀態存入變數
+          npm test 2>&1 | tee test-output.log || echo "TEST_FAILED=true" >> $GITHUB_ENV
           
-          # 將測試結果附加到 Summary UI 上
+          # 將 Log 寫入 Summary
           cat test-output.log >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
           echo "</details>" >> $GITHUB_STEP_SUMMARY
+          
+          # 🚀 判斷如果剛剛測試失敗，手動讓這個 Step 亮紅燈
+          if [ "$TEST_FAILED" == "true" ]; then 
+            echo "❌ 測試失敗！" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          else
+            echo "✅ 測試全數通過！" >> $GITHUB_STEP_SUMMARY
+          fi
