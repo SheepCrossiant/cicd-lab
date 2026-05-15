@@ -1,5 +1,2 @@
 dist/
 node_modules/
-workflows_backup/
-.github/workflows/
-snippets/
