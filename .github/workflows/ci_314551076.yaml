@@ -1,42 +1,48 @@
-name: CI
+name: CI Quality Check
 
 on:
   push:
     branches:
-      - '**'
-
-permissions:
-  contents: read
+      - '**' 
+  pull_request:
+    branches:
+      - main
 
 jobs:
-  build:
+  check-and-test:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
-          cache: npm
+          node-version: '20' 
+          cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
 
-      - name: TypeScript typecheck
-        run: npm run typecheck
+      # 1. Prettier check
+      - name: Run Prettier check
+        run: npx prettier --check .
 
-      - name: Prettier format check
-        run: npm run format:check
+      # 2. TypeScript check
+      - name: Run TypeScript typecheck
+        run: npx tsc --noEmit
 
-      - name: Run tests and generate JUnit report
-        run: |
-          mkdir -p reports
-          npm test -- --reporter=default --reporter=junit --outputFile.junit=reports/vitest-junit.xml
+      # 3. 執行測試並生成結果報告
+      # 這裡假設你使用 Jest 或 Vitest，並將結果輸出為 junit 格式以便顯示
+      - name: Run Tests
+        run: npm test -- --reporter=default --reporter=github
+        # 如果你的測試框架支援，加上 --reporter=github 可以直接在 GitHub UI 標註錯誤行數
 
-      - name: Upload test report to GitHub
-        if: always()
-        uses: actions/upload-test-report@v4
+      # 4. 將測試結果顯示於 GitHub Actions 結果頁面 (Summary)
+      # 這裡使用一個常用的 Action 來解析測試結果並顯示精美圖表
+      - name: Test Report
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always() # 確保即使測試失敗，報告還是能跑出來給你看
         with:
-          path: reports/vitest-junit.xml
+          files: "test-results/**/*.xml" # 指向你的測試結果檔案路徑
