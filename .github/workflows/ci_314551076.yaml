@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - '**'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript typecheck
+        run: npm run typecheck
+
+      - name: Prettier format check
+        run: npm run format:check
+
+      - name: Run tests and generate JUnit report
+        run: |
+          mkdir -p reports
+          npm test -- --reporter=default --reporter=junit --outputFile.junit=reports/vitest-junit.xml
+
+      - name: Upload test report to GitHub
+        if: always()
+        uses: actions/upload-test-report@v4
+        with:
+          path: reports/vitest-junit.xml
