@@ -16,7 +16,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '24' # 🚀 升級到 24 以消除截圖中的黃色警告
+          node-version: '24' 
           cache: 'npm'
 
       - name: Install dependencies
@@ -32,27 +32,27 @@ jobs:
       - name: Run TypeScript typecheck
         run: npx tsc --noEmit
 
-      # 3. 執行測試並將結果寫入 GitHub Step Summary
+    # 3. 執行測試並將結果寫入 GitHub Step Summary
       - name: Run Tests and Generate Summary
-        if: always() # 🚀 確保即使前面的檢查失敗，這個步驟也會執行
+        if: always()
         run: |
-          echo "## 🧪 測試執行結果" >> $GITHUB_STEP_SUMMARY
-          echo "<details><summary>▶ 點擊展開測試詳細 Log</summary>" >> $GITHUB_STEP_SUMMARY
+          echo "測試執行結果" >> $GITHUB_STEP_SUMMARY
+          echo "<details><summary>▶ Click here Log</summary>" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`text" >> $GITHUB_STEP_SUMMARY
           
-          # 🚀 使用 || true 防止 npm test 失敗時直接中斷腳本，並將失敗狀態存入變數
-          npm test 2>&1 | tee test-output.log || echo "TEST_FAILED=true" >> $GITHUB_ENV
+          
+          NO_COLOR=1 npm test 2>&1 | tee test-output.log || echo "TEST_FAILED=true" >> $GITHUB_ENV
           
           # 將 Log 寫入 Summary
           cat test-output.log >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
           echo "</details>" >> $GITHUB_STEP_SUMMARY
           
-          # 🚀 判斷如果剛剛測試失敗，手動讓這個 Step 亮紅燈
+          # 判斷測試結果
           if [ "$TEST_FAILED" == "true" ]; then 
-            echo "❌ 測試失敗！" >> $GITHUB_STEP_SUMMARY
+            echo "測試失敗" >> $GITHUB_STEP_SUMMARY
             exit 1
           else
-            echo "✅ 測試全數通過！" >> $GITHUB_STEP_SUMMARY
+            echo "測試通過 (若上方整體亮紅燈，點擊左側選單檢查是否為 Prettier 或 TS 檢查失敗)" >> $GITHUB_STEP_SUMMARY
           fi
