@@ -3,10 +3,7 @@ name: CI Quality Check
 on:
   push:
     branches:
-      - '**' 
-  pull_request:
-    branches:
-      - main
+      - '**'
 
 jobs:
   check-and-test:
@@ -19,30 +16,34 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20' 
+          node-version: '20'
           cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
 
-      # 1. Prettier check
+      # 1. Prettier 格式檢查
       - name: Run Prettier check
         run: npx prettier --check .
 
-      # 2. TypeScript check
+      # 2. TypeScript 型別檢查
       - name: Run TypeScript typecheck
         run: npx tsc --noEmit
 
-      # 3. 執行測試並生成結果報告
-      # 這裡假設你使用 Jest 或 Vitest，並將結果輸出為 junit 格式以便顯示
-      - name: Run Tests
-        run: npm test -- --reporter=default --reporter=github
-        # 如果你的測試框架支援，加上 --reporter=github 可以直接在 GitHub UI 標註錯誤行數
-
-      # 4. 將測試結果顯示於 GitHub Actions 結果頁面 (Summary)
-      # 這裡使用一個常用的 Action 來解析測試結果並顯示精美圖表
-      - name: Test Report
-        uses: EnricoMi/publish-unit-test-result-action@v2
-        if: always() # 確保即使測試失敗，報告還是能跑出來給你看
-        with:
-          files: "test-results/**/*.xml" # 指向你的測試結果檔案路徑
+      # 3. 執行測試並將結果寫入 GitHub Step Summary
+      - name: Run Tests and Generate Summary
+        # 確保就算前面的測試失敗，也能捕捉到錯誤代碼，並把 log 印在介面上
+        run: |
+          echo "## 🧪 測試執行結果" >> $GITHUB_STEP_SUMMARY
+          echo "<details><summary>點擊展開測試詳細 Log</summary>" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`text" >> $GITHUB_STEP_SUMMARY
+          
+          # 執行測試，並將輸出同時顯示在終端機與存入暫存檔 (使用 pipefail 確保測試失敗時能回傳錯誤)
+          set -o pipefail
+          npm test 2>&1 | tee test-output.log
+          
+          # 將測試結果附加到 Summary UI 上
+          cat test-output.log >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "</details>" >> $GITHUB_STEP_SUMMARY
