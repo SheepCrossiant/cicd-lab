@@ -24,9 +24,7 @@ jobs:
 
       # 1. Prettier check
       - name: Run Prettier check
-        continue-on-error: true 
         run: npx prettier --check .
-        
 
       # 2. TypeScript check
       - name: Run TypeScript typecheck
@@ -36,15 +34,6 @@ jobs:
       - name: Run Tests and Generate Summary
         if: always()
         run: |
-          echo "## 📋 CI 檢查總結" >> $GITHUB_STEP_SUMMARY
-          
-          # 檢查 Prettier 狀態並顯示在 Summary
-          if [ "${{ steps.prettier_step.outcome }}" == "failure" ]; then
-            echo "### Prettier check failed" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "### Prettier check passed" >> $GITHUB_STEP_SUMMARY
-          fi
-
           echo "測試執行結果" >> $GITHUB_STEP_SUMMARY
           echo "<details><summary>Click here Log</summary>" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
